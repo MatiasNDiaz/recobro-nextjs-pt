@@ -1,0 +1,6 @@
+/* globals.css */
+@import "tailwindcss";
+
+
+@source "../app/**/*.{js,ts,jsx,tsx}";
+@source "../src/**/*.{js,ts,jsx,tsx}";
