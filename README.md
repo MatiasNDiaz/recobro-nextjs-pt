@@ -18,24 +18,44 @@ Para garantizar el desacoplamiento, cada dominio gestiona sus propios componente
 
 ## 🛠️ Decisiones Técnicas Clave
 
-### 1. Estrategia Multi-tenant: "Isolating Databases"
-El sistema está diseñado bajo la premisa de un **aislamiento de datos estricto**.
+### 1. 🌐 Enfoque Multi-tenant Detallado: Aislamiento Físico 
+A diferencia de un enfoque tradicional de aislamiento lógico (donde todos los datos conviven en una misma tabla filtrados por un ID), este proyecto ha sido diseñado bajo el patrón **Database-per-Tenant**.
 
-* **Modelo de Datos**: Aunque actualmente se utilizan mocks, la arquitectura está preparada para que cada Tenant sea procesado de forma idéntica pero consuma una fuente de datos (o base de datos) independiente.
-* **Resolución Dinámica**: El tenant se resuelve mediante el segmento dinámico `[tenant]` de la URL, validando siempre la existencia de la organización antes de procesar el renderizado.
-* **Seguridad**: Se implementaron validaciones en servidor para asegurar que los recursos (proyectos) pertenezcan legítimamente al tenant en la URL, evitando el cruce de información.
+### 🛠️ Estrategia de Arquitectura
+La aplicación utiliza un modelo de **separación física de datos**, lo que garantiza que la información de cada organización resida en su propio contenedor de datos independiente.
 
-### 2. Capa de Servicios de Dashboard (Analytics)
+* **Aislamiento Total**: Se mitiga el riesgo de filtración de datos entre clientes (Cross-tenant data leakage), ya que no existen consultas que mezclen registros de diferentes organizaciones.
+* **Escalabilidad Independiente**: El diseño permite que cada base de datos crezca, se respalde o se mueva a diferentes nodos de infraestructura de forma aislada según la demanda del tenant.
+* **Mantenibilidad de Esquemas**: Facilita la evolución del modelo de datos por cliente sin impactar la disponibilidad global del SaaS.
+
+### 🔄 Implementación en el Proyecto
+Actualmente, esta lógica se ve reflejada en la estructura de `src/tenants/data/` y `src/projects/data/`, donde cada archivo actúa como un **esquema de base de datos independiente**.
+
+1.  **Resolución de Conexión**: Los servicios (`tenantsService.ts` y `projectService.ts`) actúan como un **Router de Datos**.
+2.  **Aislamiento en Servicios**: Al recibir el parámetro de la URL, el sistema selecciona la fuente de datos específica para ese tenant.
+3.  **Preparación para Producción**: En un entorno real, la carpeta `data/` sería reemplazada por un *Pool de Conexiones* dinámico que, basándose en el nombre del tenant, abriría un túnel exclusivo hacia la base de datos (PostgreSQL/MongoDB) correspondiente a dicha organización.
+
+> **Criterio Técnico**: Este enfoque garantiza que el código sea extremadamente limpio y seguro, ya que las funciones de negocio operan sobre un set de datos que ya ha sido físicamente aislado antes de llegar a la lógica de aplicación.
+
+### 2. 🏗️ Implementación y Escalabilidad
+
+Actualmente, esta lógica se refleja en la estructura de `src/tenants/data/` y `src/projects/data/`, donde cada archivo actúa como un **esquema de base de datos independiente**.
+
+* **Resolución de Conexión**: Los servicios (`tenantsService.ts` y `projectService.ts`) actúan como un **Router de Datos**, seleccionando la fuente específica según el contexto de la URL.
+* **Preparación para Producción**: En un entorno real, la capa de `data/` sería reemplazada por un **Pool de Conexiones dinámico** que abra un túnel exclusivo hacia la base de datos (**PostgreSQL/MongoDB**) correspondiente al tenant detectado.
+* **Mantenibilidad**: Este diseño facilita la evolución del modelo de datos por cliente y permite una **escalabilidad independiente**, permitiendo mover tenants con alta demanda a nodos o servidores dedicados sin afectar al resto de la plataforma.
+
+### 3. Capa de Servicios de Dashboard (Analytics)
 Se separó la lógica de métricas en un servicio dedicado dentro de `src/dashboard/service/` para no sobrecargar los componentes y permitir la reutilización de lógica:
 
 * **`getTotalProjectsForTenant`**: Calcula la cantidad total de propiedades vinculadas a una inmobiliaria.
 * **`getProjectsStatusCount`**: Procesa la segmentación de proyectos (Activos vs. Archivados) para visualización de indicadores clave. (no obligatorio, pero suma para una mejor interfaz y experiencia de usuario).
 
-### 3. Estado Visual vs. Persistencia
+### 4. Estado Visual vs. Persistencia
 * **Interactividad**: La funcionalidad de "Cambiar Estado" (Activar/Archivar) se maneja mediante estado local de React (`useState`).
 * **Justificación**: Se priorizó demostrar el manejo de eventos y la reactividad de la UI. La persistencia real fue delegada al Roadmap de escalabilidad mediante futuras implementaciones de Server Actions.
 
-### 4. Separación Server y Client Components
+### 5. Separación Server y Client Components
 * **Server Components**: Encargados del fetching de datos, resolución de promesas de `params` / `searchParams` y lógica de seguridad.
 * **Client Components**: Reducidos al mínimo necesario (interacciones de botones, estados de carga locales y toggles) para maximizar la velocidad de carga y el SEO técnico.
 
