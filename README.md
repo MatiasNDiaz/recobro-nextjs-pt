@@ -84,9 +84,20 @@ Con más tiempo de desarrollo, el proyecto escalaría mediante:
 
 ---
 
-## 🌐 Deploy
+---
 
-La aplicación está en proceso de ser desplegada en **Netlify**.
+## 🌐 Despliegue y Acceso
 
+La aplicación ha sido desplegada utilizando en **Netlify**, configurada con el **Next.js Runtime** para soportar renderizado en servidor y rutas dinámicas.
+
+| Recurso | Enlace |
+| :--- | :--- |
+| **🚀 URL del Proyecto** | [https://recobro-saas-dashboard.netlify.app/](https://recobro-saas-dashboard.netlify.app/) |
+| **📦 Repositorio** | [GitHub - recobro-nextjs-pt](https://github.com/MatiasNDiaz/recobro-nextjs-pt) |
+
+> [!TIP]
+> **Prueba de Acceso Rápido**: Al ingresar a la URL principal, verás la **Landing Page de Bienvenida** donde podrás seleccionar entre los tenants disponibles (ej: *Acme Corporation* o *Umbrella Inc*) para validar el aislamiento de datos y el ruteo dinámico.
+
+---
 > [!IMPORTANT]
 > **Nota sobre Errores**: Si intentas acceder a un tenant o proyecto inexistente, el sistema activará los límites de error personalizados (**Nested Not-Found**) manteniendo el layout institucional para no romper la experiencia de usuario.
